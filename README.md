@@ -4,6 +4,8 @@ Interactive map of biolabs available to members of [Just One Giant Lab's OpenCov
 
 https://jogl-opencovid19-jancvanb.web.app/
 
+![A screenshot of the web app](screenshot.png)
+
 ## Tools used
 
 - [Google Sheets API](https://developers.google.com/sheets/api/quickstart/js)

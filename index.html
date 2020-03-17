@@ -1,0 +1,176 @@
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+<script src="//d3js.org/d3-dsv.v1.min.js"></script>
+<script src="//d3js.org/d3-fetch.v1.min.js"></script>
+<script src="/datamaps.world.min.js"></script>
+<script async defer src="https://apis.google.com/js/api.js"
+  onload="this.onload=function(){};handle_google_api_client_load()"
+  onreadystatechange="if (this.readyState === 'complete') this.onload()">
+</script>
+
+<style>
+  html, body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    padding: 30px 0;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: normal;
+    text-align: center;
+  }
+  #map {
+    height: 0;
+    position: relative;
+    width: 100%;
+  }
+</style>
+
+<h1>
+  Just One Giant Lab
+</h1>
+<h2>
+  OpenCovid19 Initiative members with access to a biolab
+</h2>
+<h3 id="message">
+  Loading...
+</h3>
+<div id="map"></div>
+
+<script>
+  const LAB_QUESTION = 'Do you have access to a biolab or related space?';
+  const SHEET_ID = '1kcXcstyfrDD39NkF69gZ8oRnCC9U0LpU03jLGXl9_iM';
+  const SHEET_RANGE = 'Form Responses 1!A1:I';
+
+  const GOOGLE_API_KEY = 'AIzaSyDQ_c6thb-SgOIxY7TDPNOVARoUc8IGhh4';
+  const OPEN_CAGE_API_KEY = 'ae12ad0992e343dd96d87f23a86cf753';
+
+  const TODO_MESSAGE = 'TODO: Zooming, Combining overlapping circles';
+
+  function handle_google_api_client_load() {
+    gapi.load('client', () => {
+      gapi.client
+        .init({
+          apiKey: GOOGLE_API_KEY,
+          discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
+        })
+        .then(main);
+    });
+  }
+
+  function main() {
+    const map = render_map();
+    load_survey_responses()
+      .then(survey_responses => compute_bubbles(survey_responses))
+      .then(bubbles => render_bubbles(bubbles, map))
+      .then(() => update_message(TODO_MESSAGE));
+  }
+
+  function render_map() {
+    return new Datamap({
+      element: document.getElementById('map'),
+      fills: {
+        defaultFill: '#ABDDA4',
+        city: 'blue'
+      },
+      geographyConfig: {
+        popupOnHover: false,
+        highlightOnHover: false
+      },
+      projection: 'equirectangular',
+      responsive: true,
+    });
+  }
+
+  function load_survey_responses() {
+    return gapi.client.sheets.spreadsheets.values
+      .get({
+        spreadsheetId: SHEET_ID,
+        range: SHEET_RANGE,
+      })
+      .then(
+        success_response => {
+          const headers = success_response.result.values[0];
+          const rows = success_response.result.values.slice(1);
+          const survey_responses = rows
+            .filter(row => row[1] !== '' && row[1] !== undefined)
+            .map(row => {
+              let survey_response = {};
+              headers.forEach((header, index) => {
+                survey_response[header] = row[index];
+              });
+              return survey_response;
+            });
+          return survey_responses;
+        },
+        error_response => {
+          update_message(`Error: ${error_response.result.error.message}`);
+        },
+      );
+  }
+
+  function compute_bubbles(survey_responses) {
+    const responses_with_labs = survey_responses.filter(
+      response => response[LAB_QUESTION] !== 'No'
+    );
+    return Promise.all(
+      responses_with_labs
+        .map(survey_response => compute_bubble(survey_response))
+    );
+  }
+
+  function compute_bubble(survey_response) {
+    return fetch(`https://api.opencagedata.com/geocode/v1/json?key=${OPEN_CAGE_API_KEY}&q=${survey_response.City}`)
+      .then(response => response.json())
+      .then(geocode => {
+        if (geocode.results.length === 0) {
+          return {};
+        }
+        const city = geocode.results[0];
+        return {
+          city_from_geocode: city.formatted,
+          city_from_survey: survey_response.City,
+          email: survey_response.Email,
+          fillKey: 'city',
+          lab: survey_response[LAB_QUESTION],
+          latitude: city.geometry.lat,
+          longitude: city.geometry.lng,
+          name: survey_response.name,
+          radius: 10,
+        };
+      });
+  }
+
+  function render_bubbles(bubbles, map) {
+    map.bubbles(
+      bubbles,
+      {
+        popupTemplate: function(geo, datum) {
+          return `
+            <div class="hoverinfo">
+              City: <b>"${datum.city_from_survey}"</b> (${datum.city_from_geocode})
+              <br/>
+              <br/>
+              Name: <b>"${datum.name}"</b>
+              <br/>
+              Email: <b>"${datum.email}"</b>
+              <br/>
+              <br/>
+              Do you have access to a biolab or related space? <b>"${datum.lab}"</b>
+            </div>
+          `;
+        },
+      },
+    )
+  }
+
+  function update_message() {
+    document.getElementById('message').innerText = 'TODO: Zooming, Combining overlapping circles';
+  }
+</script>
+
+<script src="/__/firebase/7.11.0/firebase-app.js"></script>
+<script src="/__/firebase/7.11.0/firebase-analytics.js"></script>
+<script src="/__/firebase/init.js"></script>

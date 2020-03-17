@@ -1,6 +1,6 @@
 # JOGL OpenCovid19 Biolab Map
 
-Interactive map of biolabs available to members of JOGL's OpenCovid19 Initiative
+Interactive map of biolabs available to members of [Just One Giant Lab's OpenCovid19 Initiative](https://app.jogl.io/project/118?)
 
 https://jogl-opencovid19-jancvanb.web.app/
 

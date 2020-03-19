@@ -9,6 +9,9 @@
       crossorigin=""/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css">
     <link rel="stylesheet" href="./index.css"/>
   </head>
   <body>
@@ -27,6 +30,41 @@
 
     <div id="datamaps-map"></div>
 
+    <div id="table">
+      <v-app>
+        <v-content>
+          <v-container>
+            <v-card>
+              <v-card-title>
+                <v-spacer></v-spacer>
+                <v-text-field
+                  v-model="query"
+                  append-icon="mdi-magnify"
+                  label="Search"
+                  single-line
+                  hide-details
+                ></v-text-field>
+              </v-card-title>
+              <v-data-table
+                :expanded.sync="expanded_rows"
+                :headers="headers"
+                :items="rows"
+                :search="query"
+                show-expand
+                single-expand
+              >
+                <template v-slot:expanded-item="{ headers, item }">
+                  <td :colspan="headers.length">
+                    More info about {{ item.name }}
+                  </td>
+                </template>
+              </v-data-table>
+            </v-card>
+          </v-container>
+        </v-content>
+      </v-app>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
       integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
       crossorigin="">
@@ -37,6 +75,8 @@
     <script src="//d3js.org/d3-dsv.v1.min.js"></script>
     <script src="//d3js.org/d3-fetch.v1.min.js"></script>
     <script src="/datamaps.world.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
     <script src="/__/firebase/7.11.0/firebase-app.js"></script>
     <script src="/__/firebase/7.11.0/firebase-analytics.js"></script>
     <script src="/__/firebase/init.js"></script>

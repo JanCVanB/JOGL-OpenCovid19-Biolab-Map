@@ -1,3 +1,4 @@
+const COLUMN_NAMES_DISPLAYED_IN_TABLE = ['name', 'Email', 'City'];
 const LAB_QUESTION = 'Do you have access to a biolab or related space?';
 const SHEET_ID = '1kcXcstyfrDD39NkF69gZ8oRnCC9U0LpU03jLGXl9_iM';
 const SHEET_RANGE = 'Form Responses 1!A1:I';
@@ -21,9 +22,12 @@ function handle_google_api_client_load() {
 
 function main() {
   const dmap = render_datamaps_map();
+  const table = render_table();
   load_survey_responses()
+    .then(survey_responses => filter_to_biolabs(survey_responses))
+    .then(biolab_responses => table.load_data(biolab_responses))
   // comment out to avoid expensive calls
-  //       .then(survey_responses => compute_bubbles(survey_responses))
+  //       .then(biolab_responses => compute_bubbles(biolab_responses))
   //       .then(bubbles => render_bubbles(bubbles, dmap))
     .then(() => update_message(TODO_MESSAGE));
 
@@ -72,6 +76,37 @@ function render_datamaps_map() {
   });
 }
 
+function render_table() {
+  return new Vue({
+    el: '#table',
+    vuetify: new Vuetify(),
+    data () {
+      return {
+        expanded_rows: [],
+        headers: [],
+        query: '',
+        rows: [],
+      };
+    },
+    methods: {
+      load_data(rows) {
+        const sample_row = rows[0];
+        const column_names = Object.keys(sample_row)
+        const column_names_displayed = column_names.filter(
+          column_name => COLUMN_NAMES_DISPLAYED_IN_TABLE.indexOf(column_name) > -1
+        );
+        this.headers = column_names_displayed.map(
+          column_name => ({ text: column_name, value: column_name })
+        );
+        this.headers.push({ text: '', value: 'data-table-expand' });
+        this.rows = rows.sort(
+          (a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1
+        );
+      },
+    },
+  })
+}
+
 function load_survey_responses() {
   return gapi.client.sheets.spreadsheets.values
     .get({
@@ -99,12 +134,13 @@ function load_survey_responses() {
     );
 }
 
+function filter_to_biolabs(survey_responses) {
+  return survey_responses.filter(x => x[LAB_QUESTION] !== 'No');
+}
+
 function compute_bubbles(survey_responses) {
-  const responses_with_labs = survey_responses.filter(
-    response => response[LAB_QUESTION] !== 'No'
-  );
   return Promise.all(
-    responses_with_labs
+    survey_responses
       .map(survey_response => compute_bubble(survey_response))
   );
 }

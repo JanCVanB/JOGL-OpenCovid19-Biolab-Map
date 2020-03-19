@@ -9,17 +9,6 @@ const GOOGLE_API_KEY = 'AIzaSyDQ_c6thb-SgOIxY7TDPNOVARoUc8IGhh4';
 const OPEN_CAGE_API_KEY = 'ae12ad0992e343dd96d87f23a86cf753';
 const MAPBOX_TOKEN = 'pk.eyJ1IjoianlhbWFkIiwiYSI6ImNrN3lic2p6YTAzcnMzbXBkczExMmU3OTYifQ.h7zyFlpot_NhB4uyLIZ2zQ';
 
-function handle_google_api_client_load() {
-  gapi.load('client', () => {
-    gapi.client
-      .init({
-        apiKey: GOOGLE_API_KEY,
-        discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-      })
-      .then(main);
-  });
-}
-
 function main() {
   const map = render_map();
   const table = render_table();
@@ -34,6 +23,62 @@ function main() {
     table.load_data(biolabs);
     update_message(LOADED_MESSAGE_HTML);
   });
+}
+
+function filter_to_biolabs_with_geocode(survey_responses) {
+  return survey_responses
+    .filter(x => x[LAB_QUESTION] !== 'No')
+    .filter(x => !!x.geocode);
+}
+
+function find_matching_geocodes(geocodes, survey_responses) {
+  return survey_responses
+    .map(survey_response => ({
+      ...survey_response,
+      geocode: geocodes.find(g => g[GEOCODE_CITY_COLUMN_NAME] === survey_response.City),
+    }));
+}
+
+function handle_google_api_client_load() {
+  gapi.load('client', () => {
+    gapi.client
+      .init({
+        apiKey: GOOGLE_API_KEY,
+        discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
+      })
+      .then(main);
+  });
+}
+
+function load_geocodes() {
+  return d3.csv("./geocodes.csv");
+}
+
+function load_survey_responses() {
+  return gapi.client.sheets.spreadsheets.values
+    .get({
+      spreadsheetId: SHEET_ID,
+      range: SHEET_RANGE,
+    })
+    .then(
+      success_response => {
+        const headers = success_response.result.values[0];
+        const rows = success_response.result.values.slice(1);
+        const survey_responses = rows
+          .filter(row => row[1] !== '' && row[1] !== undefined)
+          .map(row => {
+            let survey_response = {};
+            headers.forEach((header, index) => {
+              survey_response[header] = row[index];
+            });
+            return survey_response;
+          });
+        return survey_responses;
+      },
+      error_response => {
+        update_message(`Error: ${error_response.result.error.message}`);
+      },
+    );
 }
 
 function render_map() {
@@ -89,51 +134,6 @@ function render_table() {
       },
     },
   })
-}
-
-function load_geocodes() {
-  return d3.csv("./geocodes.csv");
-}
-
-function load_survey_responses() {
-  return gapi.client.sheets.spreadsheets.values
-    .get({
-      spreadsheetId: SHEET_ID,
-      range: SHEET_RANGE,
-    })
-    .then(
-      success_response => {
-        const headers = success_response.result.values[0];
-        const rows = success_response.result.values.slice(1);
-        const survey_responses = rows
-          .filter(row => row[1] !== '' && row[1] !== undefined)
-          .map(row => {
-            let survey_response = {};
-            headers.forEach((header, index) => {
-              survey_response[header] = row[index];
-            });
-            return survey_response;
-          });
-        return survey_responses;
-      },
-      error_response => {
-        update_message(`Error: ${error_response.result.error.message}`);
-      },
-    );
-}
-
-function filter_to_biolabs_with_geocode(survey_responses) {
-  return survey_responses
-    .filter(x => x[LAB_QUESTION] !== 'No')
-    .filter(x => !!x.geocode);
-}
-
-function find_matching_geocodes(geocodes, survey_responses) {
-  return survey_responses
-    .map(survey_response => ({
-      ...survey_response,
-      geocode: geocodes.find(g => g[GEOCODE_CITY_COLUMN_NAME] === survey_response.City),
-    }));
 }
 
 function update_message(message) {

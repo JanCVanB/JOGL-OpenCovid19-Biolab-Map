@@ -20,11 +20,11 @@ function handle_google_api_client_load() {
 }
 
 function main() {
-  const map = render_map();
+  const dmap = render_datamaps_map();
   load_survey_responses()
   // comment out to avoid expensive calls
   //       .then(survey_responses => compute_bubbles(survey_responses))
-  //       .then(bubbles => render_bubbles(bubbles, map))
+  //       .then(bubbles => render_bubbles(bubbles, dmap))
     .then(() => update_message(TODO_MESSAGE));
 
   const lmap = render_leaflet_map();
@@ -56,9 +56,9 @@ function render_leaflet_map() {
   return map;
 }
 
-function render_map() {
+function render_datamaps_map() {
   return new Datamap({
-    element: document.getElementById('map'),
+    element: document.getElementById('datamaps-map'),
     fills: {
       defaultFill: '#ABDDA4',
       city: 'blue'

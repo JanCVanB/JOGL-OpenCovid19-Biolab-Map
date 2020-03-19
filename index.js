@@ -97,12 +97,10 @@ function render_map() {
 
 function render_map_markers(biolabs, map) {
   const markers = L.markerClusterGroup();
-  const dots = biolabs.map(
-    biolab => L.circle([biolab.geocode.lat, biolab.geocode.lon])
-  );
-  markers
-    .addLayers(dots)
-    .addTo(map);
+  biolabs.forEach(biolab => {
+    markers.addLayer(L.marker([biolab.geocode.lat, biolab.geocode.lon]))
+  });
+  map.addLayer(markers);
 }
 
 function render_table() {

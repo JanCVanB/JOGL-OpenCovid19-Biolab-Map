@@ -1,9 +1,10 @@
-const COLUMN_NAMES_DISPLAYED_IN_TABLE = ['name', 'Email', 'City'];
 const GEOCODE_CITY_COLUMN_NAME = 'query';
 const LAB_QUESTION = 'Do you have access to a biolab or related space?';
 const LOADED_MESSAGE_HTML = '(All locations are approximate)'
 const SHEET_ID = '1kcXcstyfrDD39NkF69gZ8oRnCC9U0LpU03jLGXl9_iM';
 const SHEET_RANGE = 'Form Responses 1!A1:I';
+
+const COLUMN_NAMES_DISPLAYED_IN_TABLE = ['name', 'City', LAB_QUESTION];
 
 const GOOGLE_API_KEY = 'AIzaSyDQ_c6thb-SgOIxY7TDPNOVARoUc8IGhh4';
 const OPEN_CAGE_API_KEY = 'ae12ad0992e343dd96d87f23a86cf753';

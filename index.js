@@ -98,7 +98,10 @@ function render_map() {
 function render_map_markers(biolabs, map) {
   const markers = L.markerClusterGroup();
   biolabs.forEach(biolab => {
-    markers.addLayer(L.marker([biolab.geocode.lat, biolab.geocode.lon]))
+    const marker = L.marker([biolab.geocode.lat, biolab.geocode.lon]);
+    marker.bindPopup(`${biolab.name}<br>${biolab.Email}`);
+    marker.on('mouseover', marker.openPopup);
+    markers.addLayer(marker);
   });
   map.addLayer(markers);
 }

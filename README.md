@@ -9,8 +9,10 @@ https://jogl-opencovid19-jancvanb.web.app/
 ## Tools used
 
 - [Google Sheets API](https://developers.google.com/sheets/api/quickstart/js)
-- [OpenCage Geocoding API](https://opencagedata.com/api)
-- [DataMaps](http://datamaps.github.io/)
+- [Nominatim](https://wiki.openstreetmap.org/wiki/Nominatim)
+- [Leaflet](https://leafletjs.com/)
+- [Vuetify](https://vuetifyjs.com/en/)
+- [Firebase Hosting](https://firebase.google.com/docs/hosting)
 
 ## Developer setup
 

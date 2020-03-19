@@ -1,3 +1,15 @@
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+  integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+  crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+  integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+  crossorigin=""></script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"/>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
 <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
 <script src="//d3js.org/d3-dsv.v1.min.js"></script>
@@ -26,6 +38,12 @@
     position: relative;
     width: 100%;
   }
+
+  #leaflet-map {
+    height: 500px;
+    position: relative;
+    width: 100%;
+  }
 </style>
 
 <h1>
@@ -37,7 +55,9 @@
 <h3 id="message">
   Loading...
 </h3>
+<div id="leaflet-map"></div>
 <div id="map"></div>
+
 
 <script>
   const LAB_QUESTION = 'Do you have access to a biolab or related space?';
@@ -46,8 +66,9 @@
 
   const GOOGLE_API_KEY = 'AIzaSyDQ_c6thb-SgOIxY7TDPNOVARoUc8IGhh4';
   const OPEN_CAGE_API_KEY = 'ae12ad0992e343dd96d87f23a86cf753';
+  const MAPBOX_TOKEN = 'pk.eyJ1IjoianlhbWFkIiwiYSI6ImNrN3lic2p6YTAzcnMzbXBkczExMmU3OTYifQ.h7zyFlpot_NhB4uyLIZ2zQ';
 
-  const TODO_MESSAGE = 'TODO: Zooming, Combining overlapping circles';
+  const TODO_MESSAGE = 'DONE!: Zooming, Combining overlapping circles';
 
   function handle_google_api_client_load() {
     gapi.load('client', () => {
@@ -63,9 +84,38 @@
   function main() {
     const map = render_map();
     load_survey_responses()
-      .then(survey_responses => compute_bubbles(survey_responses))
-      .then(bubbles => render_bubbles(bubbles, map))
+    // comment out to avoid expensive calls
+    //       .then(survey_responses => compute_bubbles(survey_responses))
+    //       .then(bubbles => render_bubbles(bubbles, map))
       .then(() => update_message(TODO_MESSAGE));
+
+    const lmap = render_leaflet_map();
+
+    d3.csv("./geocodes.csv")
+      .then(data => {
+        const markers = L.markerClusterGroup();
+
+        const dots = data.map(d => L.circle([d.lat, d.lon]));
+        markers
+          .addLayers(dots)
+          .addTo(lmap);
+      });
+  }
+
+  function render_leaflet_map() {
+    const map = L.map("leaflet-map").setView([0, 0], 0);
+
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+      minZoom: 1,
+      maxZoom: 18,
+      id: 'mapbox/streets-v11',
+      tileSize: 512,
+      zoomOffset: -1,
+      accessToken: MAPBOX_TOKEN
+    }).addTo(map);
+
+    return map;
   }
 
   function render_map() {

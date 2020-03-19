@@ -1,7 +1,7 @@
 const COLUMN_NAMES_DISPLAYED_IN_TABLE = ['name', 'Email', 'City'];
 const GEOCODE_CITY_COLUMN_NAME = 'query';
 const LAB_QUESTION = 'Do you have access to a biolab or related space?';
-const LOADED_MESSAGE_HTML = '&nbsp;'
+const LOADED_MESSAGE_HTML = '(All locations are approximate)'
 const SHEET_ID = '1kcXcstyfrDD39NkF69gZ8oRnCC9U0LpU03jLGXl9_iM';
 const SHEET_RANGE = 'Form Responses 1!A1:I';
 

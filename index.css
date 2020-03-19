@@ -10,17 +10,13 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-weight: normal;
+  margin: 10px 0;
   text-align: center;
 }
 
-#datamaps-map {
-  height: 0;
-  position: relative;
-  width: 100%;
-}
-
-#leaflet-map {
+#map {
   height: 500px;
+  margin: 10px 0;
   position: relative;
   width: 100%;
 }
